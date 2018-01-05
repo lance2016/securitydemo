@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bean:beans xmlns="http://www.springframework.org/schema/security"
+            xmlns:bean="http://www.springframework.org/schema/beans"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/security
+        http://www.springframework.org/schema/security/spring-security.xsd">
+
+
+    <!-- 配置不过滤的资源（静态资源及登录相关） -->
+    <http pattern="/**/*.css" security="none"></http>
+    <http pattern="/**/*.jpg" security="none"></http>
+    <http pattern="/**/*.jpeg" security="none"></http>
+    <http pattern="/**/*.gif" security="none"></http>
+    <http pattern="/**/*.png" security="none"></http>
+    <http pattern="/js/*.js" security="none"></http>
+
+    <http pattern="/user/loginPage" security="none"></http>
+    <http pattern="/getCode" security="none" /><!-- 不过滤验证码 -->
+    <http pattern="/test/**" security="none"></http><!-- 不过滤测试内容 -->
+
+    <http auto-config="true">
+
+        <intercept-url pattern="/user/service" access="hasRole('ROLE_SERVICE')"/>
+        <intercept-url pattern="/user/test" access="hasRole('ROLE_SERVICE')"/>
+        <intercept-url pattern="/user/admin" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')"/>
+
+
+        <form-login login-page="/user/loginPage"
+                    login-processing-url="/login"
+                    always-use-default-target="true"
+                    default-target-url="/user/service"
+
+                    authentication-failure-url="/user/loginPage?error=error" />
+
+        <logout logout-url="/logout" logout-success-url="/user/loginPage?logout=logout" invalidate-session="true"/>
+
+        <remember-me key="remember-me" user-service-ref="userServiceImpl"></remember-me>
+        <access-denied-handler error-page="/user/403?error=authority"/>
+        <csrf disabled="true"/>
+
+
+    </http>
+
+
+    <bean:bean id="userService" class="com.lance.service.Impl.UserServiceImpl"/>
+    <authentication-manager alias="authenticationManager">
+        <authentication-provider user-service-ref="userService">
+            <password-encoder hash="md5" />
+        </authentication-provider>
+    </authentication-manager>
+
+
+</bean:beans>
